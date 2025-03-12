@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nifi
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Virupakshappa/kubernetes-nifi-gitops.git
+    targetRevision: HEAD
+    path: charts/nifi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nifi
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
