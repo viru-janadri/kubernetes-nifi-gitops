@@ -4,7 +4,7 @@ nifi:
   ## Image configuration
   image:
     repository: apache/nifi
-    tag: "1.16.0"
+    tag: "1.23.2"
 
   ## Service configuration
   service:
