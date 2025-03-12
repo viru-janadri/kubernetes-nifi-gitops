@@ -1,33 +1,36 @@
-## Apache NiFi Configuration
-replicaCount: 1
+nifi:
+  replicaCount: 1
 
-## Image configuration
-image:
-  registry: docker.io
-  repository: bitnami/nifi
-  tag: latest
+  ## Image configuration
+  image:
+    repository: apache/nifi
+    tag: "1.16.0"
 
-## Service configuration
-service:
-  type: ClusterIP
-  port: 8080
+  ## Service configuration
+  service:
+    type: ClusterIP
+    port: 8080
 
-## Persistence configuration
-persistence:
-  enabled: true
-  size: 10Gi
+  ## Persistence configuration
+  persistence:
+    enabled: true
+    size: 10Gi
 
-## Security configuration
-auth:
-  enabled: true
-  adminUser: admin
-  adminPassword: "nifiPassword" # In production, use Kubernetes secrets
+  ## Security configuration
+  properties:
+    webProxyHost: "localhost:9090"
+    isNode: true
+    authorizer: managed-authorizer
+    securityUserLogin: true
+    securityUserAuthorities: ROLE_ADMIN
+    securityUserName: admin
+    securityUserPassword: nifiPassword
 
-## Resource configuration
-resources:
-  requests:
-    memory: "1Gi"
-    cpu: "500m"
-  limits:
-    memory: "2Gi"
-    cpu: "1000m"
+  ## Resource configuration
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
