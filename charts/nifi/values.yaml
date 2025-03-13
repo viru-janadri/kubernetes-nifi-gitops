@@ -1,5 +1,5 @@
 nifi:
-  replicaCount: 1
+  replicaCount: 3
 
   ## Image configuration
   image:
