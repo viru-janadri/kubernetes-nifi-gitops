@@ -1,5 +1,5 @@
 nifi:
-  replicaCount: 2
+  replicaCount: 3
 
   ## Image configuration
   image:
@@ -14,7 +14,7 @@ nifi:
   ## Persistence configuration
   persistence:
     enabled: true
-    size: 5Gi
+    size: 10Gi
 
   ## Security configuration
   properties:
@@ -22,6 +22,9 @@ nifi:
     isNode: true
     authorizer: managed-authorizer
     securityUserLogin: true
+    securityUserAuthorities: ROLE_ADMIN
+    securityUserName: admin
+    securityUserPassword: nifiPassword
 
   ## Resource configuration
   resources:
@@ -31,8 +34,3 @@ nifi:
     limits:
       memory: "2Gi"
       cpu: "1000m"
-
-  auth:
-    singleUser:
-      username: admin
-      password: developer2025
