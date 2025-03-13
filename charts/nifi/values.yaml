@@ -89,7 +89,7 @@ nifi:
     algorithm: NIFI_PBKDF2_AES_GCM_256
     # use externalSecure for when inbound SSL is provided by nginx-ingress or other external mechanism
     externalSecure: false
-    isNode: false
+    isNode: true
     httpsPort: 8443
     webProxyHost: # <clusterIP>:<NodePort> (If Nifi service is NodePort or LoadBalancer)
     clusterPort: 6007
