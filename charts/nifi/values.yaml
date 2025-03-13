@@ -5,11 +5,16 @@ nifi:
     isNode: true # Required to designate this instance as a cluster node
     sensitiveKey: developer2025
     clusterPort: 6007
-    webProxyHost: nifi.infra.svc
+    webProxyHost: nifi.nifi.svc
     # cluster communication timeouts for scaling operations
     clusterNodeConnectionTimeout: "60 sec"
     clusterNodeReadTimeout: "60 sec"
     zookeeperSessionTimeout: "60 sec"
+
+  sts:
+    startupProbe:
+      enabled: true
+      periodSeconds: 150
 
   certManager:
     enabled: true
