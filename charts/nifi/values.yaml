@@ -11,21 +11,32 @@ nifi:
     type: ClusterIP
     httpsPort: 8443
 
-  ## Persistence configuration
-  persistence:
-    enabled: true
-
   ## Security configuration
   auth:
     singleUser:
       username: admin
-      password: nifiPassword
+      password: nifiPassword # At least 12 characters
+
+  ## Persistence configuration
+  persistence:
+    enabled: true
+
+  ## Use cert-manager to handle certificates
+  certManager:
+    enabled: true
+    clusterDomain: cluster.local
+    keystorePasswd: changeme
+    truststorePasswd: changeme
+    # Add hostnames for all nodes
+    additionalDnsNames:
+      - localhost
+      - nifi.nifi.svc.cluster.local
+      - "*.nifi-headless.nifi.svc.cluster.local"
 
   ## Cluster configuration
   properties:
     isNode: true
     clusterPort: 6007
-    zkClientEnsembleTraker: true
     webProxyHost: nifi.nifi.svc.cluster.local:8443
 
   ## Zookeeper configuration
