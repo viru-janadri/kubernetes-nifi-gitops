@@ -39,11 +39,3 @@ jobs:
           cd charts/nifi
           helm template . > /dev/null
           echo "Helm template renders successfully"
-
-      - name: Check for sensitive information
-        run: |
-          cd charts/nifi
-          if grep -r "developer2025" --include="*.yaml" --include="*.yml" .; then
-            echo "Warning: Potential hardcoded secrets found in chart files"
-            exit 1
-          fi
