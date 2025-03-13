@@ -1,0 +1,35 @@
+name: Deploy NiFi Changes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "charts/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.10.0"
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add cetic https://cetic.github.io/helm-charts
+          helm repo update
+
+      - name: Build dependencies
+        run: |
+          cd charts/nifi
+          helm dependency build
+
+      - name: Notify deployment
+        run: |
+          echo "Changes have been pushed to the repository."
+          echo "ArgoCD will automatically sync the changes based on the configured syncPolicy."

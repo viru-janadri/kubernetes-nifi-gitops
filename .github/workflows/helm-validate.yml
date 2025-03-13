@@ -1,0 +1,32 @@
+name: Validate Helm Charts
+
+on:
+  push:
+    paths:
+      - "charts/**"
+  pull_request:
+    paths:
+      - "charts/**"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.10.0"
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add cetic https://cetic.github.io/helm-charts
+          helm repo update
+
+      - name: Lint NiFi Helm chart
+        run: |
+          cd charts/nifi
+          helm dependency build
+          helm lint .
