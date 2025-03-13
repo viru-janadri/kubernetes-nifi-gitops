@@ -25,8 +25,8 @@ nifi:
   certManager:
     enabled: true
     clusterDomain: cluster.local
-    keystorePasswd: changeme
-    truststorePasswd: changeme
+    keystorePasswd: nifiPassword
+    truststorePasswd: nifiPassword
     # Add hostnames for all nodes
     additionalDnsNames:
       - localhost
@@ -38,11 +38,6 @@ nifi:
     isNode: true
     clusterPort: 6007
     webProxyHost: nifi.nifi.svc.cluster.local:8443
-
-  ## Zookeeper configuration
-  zookeeper:
-    enabled: true
-    replicaCount: 3
 
   ## Resource configuration
   resources:
