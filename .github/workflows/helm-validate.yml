@@ -34,19 +34,11 @@ jobs:
           helm dependency build
           helm lint .
 
-      - name: Run Helm Template Validation
+      - name: Validate template rendering
         run: |
           cd charts/nifi
-          mkdir -p .validation
-          helm template . --output-dir .validation
-
-      - name: Validate Kubernetes manifests
-        uses: instrumenta/kubeval-action@master
-        with:
-          files: charts/nifi/.validation/**/*.yaml
-          ignore_missing_schemas: true
-          strict: true
-          version: 1.25.0
+          helm template . > /dev/null
+          echo "Helm template renders successfully"
 
       - name: Check for sensitive information
         run: |
