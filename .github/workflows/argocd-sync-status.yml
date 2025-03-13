@@ -1,0 +1,42 @@
+name: ArgoCD Sync Status
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *" # Run every 6 hours
+
+jobs:
+  check-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install ArgoCD CLI
+        run: |
+          curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+          rm argocd-linux-amd64
+
+      - name: Log in to ArgoCD
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+        run: |
+          if [ -z "$ARGOCD_AUTH_TOKEN" ]; then
+            echo "ArgoCD token not configured, skipping sync check"
+            exit 0
+          fi
+          argocd login --server $ARGOCD_SERVER --auth-token $ARGOCD_AUTH_TOKEN --grpc-web
+
+      - name: Check sync status
+        run: |
+          APPS=$(argocd app list -o name)
+          for APP in $APPS; do
+            STATUS=$(argocd app get $APP -o json | jq -r '.status.sync.status')
+            HEALTH=$(argocd app get $APP -o json | jq -r '.status.health.status')
+            echo "App: $APP, Sync Status: $STATUS, Health: $HEALTH"
+            if [ "$STATUS" != "Synced" ] || [ "$HEALTH" != "Healthy" ]; then
+              echo "::warning::Application $APP is not in sync or not healthy!"
+            fi
+          done

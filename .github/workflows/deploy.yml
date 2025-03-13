@@ -6,9 +6,47 @@ on:
       - main
     paths:
       - "charts/**"
+      - "apps/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.12.3"
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add cetic https://cetic.github.io/helm-charts
+          helm repo update
+
+      - name: Lint and validate charts
+        run: |
+          cd charts/nifi
+          helm dependency build
+          helm lint .
+
   deploy:
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,7 +55,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v3
         with:
-          version: "v3.10.0"
+          version: "v3.12.3"
 
       - name: Add Helm repositories
         run: |
@@ -29,7 +67,25 @@ jobs:
           cd charts/nifi
           helm dependency build
 
+      - name: Generate deployment package
+        run: |
+          VERSION=$(git rev-parse --short HEAD)
+          cd charts/nifi
+          helm package . --version $VERSION --app-version $VERSION
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.sha }}
+          tag_name: v-${{ github.sha }}
+          draft: false
+          prerelease: ${{ github.event.inputs.environment != 'prod' }}
+          files: charts/nifi/nifi-*.tgz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Notify deployment
         run: |
-          echo "Changes have been pushed to the repository."
+          echo "Changes have been deployed - Version: $(git rev-parse --short HEAD)"
           echo "ArgoCD will automatically sync the changes based on the configured syncPolicy."

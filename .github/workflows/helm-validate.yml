@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "charts/**"
+      - ".github/workflows/helm-validate.yml"
   pull_request:
     paths:
       - "charts/**"
@@ -14,11 +15,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Helm
         uses: azure/setup-helm@v3
         with:
-          version: "v3.10.0"
+          version: "v3.12.3"
 
       - name: Add Helm repositories
         run: |
@@ -30,3 +33,25 @@ jobs:
           cd charts/nifi
           helm dependency build
           helm lint .
+
+      - name: Run Helm Template Validation
+        run: |
+          cd charts/nifi
+          mkdir -p .validation
+          helm template . --output-dir .validation
+
+      - name: Validate Kubernetes manifests
+        uses: instrumenta/kubeval-action@master
+        with:
+          files: charts/nifi/.validation/**/*.yaml
+          ignore_missing_schemas: true
+          strict: true
+          version: 1.25.0
+
+      - name: Check for sensitive information
+        run: |
+          cd charts/nifi
+          if grep -r "developer2025" --include="*.yaml" --include="*.yml" .; then
+            echo "Warning: Potential hardcoded secrets found in chart files"
+            exit 1
+          fi
