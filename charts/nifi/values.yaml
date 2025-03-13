@@ -9,22 +9,29 @@ nifi:
   ## Service configuration
   service:
     type: ClusterIP
-    port: 8080
+    httpsPort: 8443
 
   ## Persistence configuration
   persistence:
     enabled: true
-    size: 10Gi
 
   ## Security configuration
+  auth:
+    singleUser:
+      username: admin
+      password: nifiPassword
+
+  ## Cluster configuration
   properties:
-    webProxyHost: "localhost:9090"
     isNode: true
-    authorizer: managed-authorizer
-    securityUserLogin: true
-    securityUserAuthorities: ROLE_ADMIN
-    securityUserName: admin
-    securityUserPassword: nifiPassword
+    clusterPort: 6007
+    zkClientEnsembleTraker: true
+    webProxyHost: nifi.nifi.svc.cluster.local:8443
+
+  ## Zookeeper configuration
+  zookeeper:
+    enabled: true
+    replicaCount: 3
 
   ## Resource configuration
   resources:
