@@ -16,15 +16,17 @@ nifi:
     enabled: true
     size: 10Gi
 
+  auth:
+    simpleUser:
+      username: admin
+      password: developer2025
+
   ## Security configuration
   properties:
     webProxyHost: "localhost:9090"
     isNode: true
     authorizer: managed-authorizer
     securityUserLogin: true
-    securityUserAuthorities: ROLE_ADMIN
-    securityUserName: admin
-    securityUserPassword: nifiPassword
 
   ## Resource configuration
   resources:
