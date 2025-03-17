@@ -9,6 +9,12 @@ metadata:
     heritage: {{ .Release.Service | quote }}
     custom-label: "my-custom-value"
 spec:
+  # Add this critical selector section
+  selector:
+    matchLabels:
+      app: {{ include "apache-nifi.name" . | quote }}
+      release: {{ .Release.Name | quote }}
+  
   template:
     metadata:
       labels:
@@ -16,6 +22,8 @@ spec:
         chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
         release: {{ .Release.Name | quote }}
         heritage: {{ .Release.Service | quote }}
+        # Ensure these labels match the selector
+        custom-label: "my-custom-value"
       annotations:
         security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
         custom.pod.annotation/example: "My custom pod annotation"
