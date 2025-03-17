@@ -1,0 +1,12 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-nifi
+  labels:
+    custom-label: "my-custom-value"
+spec:
+  template:
+    metadata:
+      annotations:
+        custom.pod.annotation/example: "My custom pod annotation"
