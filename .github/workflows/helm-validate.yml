@@ -30,12 +30,12 @@ jobs:
 
       - name: Lint NiFi Helm chart
         run: |
-          cd charts/nifi
+          cd charts/viru-nifi
           helm dependency build
           helm lint .
 
       - name: Validate template rendering
         run: |
-          cd charts/nifi
+          cd charts/viru-nifi
           helm template . > /dev/null
           echo "Helm template renders successfully"

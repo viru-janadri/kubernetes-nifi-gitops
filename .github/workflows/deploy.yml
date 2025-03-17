@@ -41,7 +41,7 @@ jobs:
 
       - name: Lint NiFi Helm chart
         run: |
-          cd charts/nifi
+          cd charts/viru-nifi
           helm dependency build
           helm lint .
 
@@ -64,13 +64,13 @@ jobs:
 
       - name: Build dependencies
         run: |
-          cd charts/nifi
+          cd charts/viru-nifi
           helm dependency build
 
       - name: Generate deployment package
         run: |
           VERSION=$(git rev-parse --short HEAD)
-          cd charts/nifi
+          cd charts/viru-nifi
           helm package . --version 0.1.0-$VERSION --app-version 1.23.2-$VERSION
 
       - name: Create GitHub Release
@@ -81,7 +81,7 @@ jobs:
           tag_name: v-${{ github.sha }}
           draft: false
           prerelease: ${{ github.event.inputs.environment != 'prod' }}
-          files: charts/nifi/nifi-*.tgz
+          files: charts/viru-nifi/nifi-*.tgz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
