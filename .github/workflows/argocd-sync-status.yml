@@ -1,0 +1,91 @@
+name: ArgoCD Sync Status
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 */15 * *"  # Run every 15 days at midnight UTC
+
+jobs:
+  check-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install ArgoCD CLI
+        run: |
+          curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+          rm argocd-linux-amd64
+
+      - name: Log in to ArgoCD
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
+          ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
+          ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_AUTH_TOKEN }}
+        run: |
+          # Verify required configuration is available
+          if [ -z "$ARGOCD_SERVER" ]; then
+            echo "::error::ArgoCD server address not configured. Set the ARGOCD_SERVER secret."
+            exit 1
+          fi
+
+          # Attempt to log in using auth token if available
+          if [ ! -z "$ARGOCD_AUTH_TOKEN" ]; then
+            echo "Logging in to ArgoCD using auth token"
+            argocd login --server "$ARGOCD_SERVER" --auth-token "$ARGOCD_AUTH_TOKEN" --grpc-web --insecure
+          # Otherwise try username/password auth
+          elif [ ! -z "$ARGOCD_USERNAME" ] && [ ! -z "$ARGOCD_PASSWORD" ]; then
+            echo "Logging in to ArgoCD using username and password"
+            argocd login --server "$ARGOCD_SERVER" --username "$ARGOCD_USERNAME" --password "$ARGOCD_PASSWORD" --grpc-web --insecure
+          else
+            echo "::error::Neither ARGOCD_AUTH_TOKEN nor ARGOCD_USERNAME and ARGOCD_PASSWORD are configured"
+            exit 1
+          fi
+
+          # Verify login was successful
+          argocd account get-user-info
+
+      - name: Check sync status
+        run: |
+          # Get list of applications
+          echo "Retrieving application list from ArgoCD"
+          APPS=$(argocd app list -o name)
+
+          if [ -z "$APPS" ]; then
+            echo "No applications found in ArgoCD"
+            exit 0
+          fi
+
+          HAS_ISSUES=false
+
+          echo "Checking application sync and health status"
+          for APP in $APPS; do
+            # Get application status
+            APP_JSON=$(argocd app get $APP -o json)
+            STATUS=$(echo "$APP_JSON" | jq -r '.status.sync.status')
+            HEALTH=$(echo "$APP_JSON" | jq -r '.status.health.status')
+            
+            echo "App: $APP, Sync Status: $STATUS, Health: $HEALTH"
+            
+            if [ "$STATUS" != "Synced" ] || [ "$HEALTH" != "Healthy" ]; then
+              echo "::warning::Application $APP is not in sync or not healthy!"
+              HAS_ISSUES=true
+              
+              # Get detailed information for problem applications
+              echo "Detailed information for $APP:"
+              argocd app get $APP
+              
+              # Show recent events for the application
+              echo "Recent events for $APP:"
+              argocd app history $APP
+            fi
+          done
+
+          if [ "$HAS_ISSUES" = true ]; then
+            echo "One or more applications have sync or health issues."
+            exit 1
+          else
+            echo "All applications are in sync and healthy."
+          fi

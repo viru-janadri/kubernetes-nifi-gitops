@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "charts/**"
+      - ".github/workflows/helm-validate.yml"
   pull_request:
     paths:
       - "charts/**"
@@ -14,11 +15,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Helm
         uses: azure/setup-helm@v3
         with:
-          version: "v3.10.0"
+          version: "v3.12.3"
 
       - name: Add Helm repositories
         run: |
@@ -30,3 +33,9 @@ jobs:
           cd charts/nifi
           helm dependency build
           helm lint .
+
+      - name: Validate template rendering
+        run: |
+          cd charts/nifi
+          helm template . > /dev/null
+          echo "Helm template renders successfully"

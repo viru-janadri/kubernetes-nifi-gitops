@@ -1,36 +1,42 @@
 nifi:
   replicaCount: 3
 
-  ## Image configuration
-  image:
-    repository: apache/nifi
-    tag: "1.23.2"
-
-  ## Service configuration
-  service:
-    type: ClusterIP
-    port: 8080
-
-  ## Persistence configuration
-  persistence:
-    enabled: true
-    size: 10Gi
-
-  ## Security configuration
   properties:
-    webProxyHost: "localhost:9090"
-    isNode: true
-    authorizer: managed-authorizer
-    securityUserLogin: true
-    securityUserAuthorities: ROLE_ADMIN
-    securityUserName: admin
-    securityUserPassword: nifiPassword
+    isNode: true # Required to designate this instance as a cluster node
+    sensitiveKey: developer2025
+    clusterPort: 6007
+    webProxyHost: nifi.nifi.svc
+    # cluster communication timeouts for scaling operations
+    clusterNodeConnectionTimeout: "60 sec"
+    clusterNodeReadTimeout: "60 sec"
+    zookeeperSessionTimeout: "60 sec"
 
-  ## Resource configuration
-  resources:
-    requests:
-      memory: "1Gi"
-      cpu: "500m"
-    limits:
-      memory: "2Gi"
-      cpu: "1000m"
+  sts:
+    startupProbe:
+      enabled: true
+      periodSeconds: 150
+
+  certManager:
+    enabled: true
+    clusterDomain: cluster.local
+    keystorePasswd: developer2025
+    truststorePasswd: developer2025
+    additionalDnsNames:
+      - localhost
+      - nifi.infra.svc
+      - "*.nifi-headless.nifi.svc.cluster.local"
+    refreshSeconds: 60
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        memory: 128Mi
+    certDuration: 2160h
+    caDuration: 87660h
+
+  auth:
+    singleUser:
+      username: admin
+      password: developer2025 # Must to have at least 12 characters
+
