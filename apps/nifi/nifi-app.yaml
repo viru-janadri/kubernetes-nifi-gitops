@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/viru-janadri/kubernetes-nifi-gitops.git
     targetRevision: HEAD
-    path: charts/viruNifi
+    path: charts/viru-nifi
   destination:
     server: https://kubernetes.default.svc
     namespace: nifi
